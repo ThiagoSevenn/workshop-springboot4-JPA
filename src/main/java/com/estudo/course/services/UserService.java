@@ -4,6 +4,7 @@ import com.estudo.course.entities.User;
 import com.estudo.course.repositories.UserRepository;
 import com.estudo.course.services.exceptions.DatabaseException;
 import com.estudo.course.services.exceptions.ResouceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,6 @@ public class UserService {
     }
 
     public void delete(Long id){
-
         try {
             repository.delete(findById(id));
         } catch (DataIntegrityViolationException e){
@@ -40,9 +40,14 @@ public class UserService {
     }
 
     public User update(Long id, User user){
-        User entity = repository.getReferenceById(id);
-        updateData(entity, user);
-        return repository.save(entity);
+        try {
+            User entity = repository.getReferenceById(id);
+
+            updateData(entity, user);
+            return repository.save(entity);
+        } catch (EntityNotFoundException e){
+            throw new ResouceNotFoundException(id);
+        }
     }
 
     private void updateData(User entity, User user) {
